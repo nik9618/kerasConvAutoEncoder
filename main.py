@@ -25,11 +25,12 @@ print(X_train.shape[0],X_train[0].shape[0], 'train samples')
 trained_encoders = []
 
 X_train_tmp = X_train
-nb_hidden_layer = 3
+nb_hidden_layer = 1
 nb_filter=30
+input_dim = 1;
 filter_length=21
 batch_size = 1
-nb_epoch = 5
+nb_epoch = 2
 
 for n in range(nb_hidden_layer):
     print('Pre-training the layer: {}'.format(n))
@@ -37,7 +38,7 @@ for n in range(nb_hidden_layer):
     encoder = Sequential()
     encoder.add(Convolution1D(input_length=1000,
                             nb_filter = nb_filter,
-                            input_dim = 1,
+                            input_dim = input_dim,
                             filter_length = filter_length,
                             border_mode = "same",
                             activation = "tanh",
@@ -52,29 +53,25 @@ for n in range(nb_hidden_layer):
                             activation = "tanh",
                             subsample_length = 1))
     ae=Sequential()
-    ae.add(AutoEncoder(encoder=encoder, decoder=decoder,output_reconstruction=True))
+    ae.add(AutoEncoder(encoder=encoder, decoder=decoder,output_reconstruction=False))
     layer_utils.print_layer_shapes(ae,[(1,1000,1)]) 
     print "....compile"
     ae.compile(loss='mean_squared_error', optimizer='rmsprop')
     print "....fitting"
     ae.fit(X_train_tmp, X_train_tmp, batch_size=batch_size, nb_epoch=nb_epoch)
-    break;
-#     # Store trainined weight
-#     # trained_encoders.append(ae.layers[0].encoder)
-#     # Update training data
-#     # X_train_tmp = ae.predict(X_train_tmp)
-#     break;
+    trained_encoders.append(ae.layers[0].encoder)
+    X_train_tmp = ae.predict(X_train_tmp)
 
-# # # Fine-tuning
-# # print('Fine-tuning')
-# # model = Sequential()
-# # for encoder in trained_encoders:
-# #     model.add(encoder)
-# # model.add(Dense(nb_hidden_layers[-1], nb_classes, activation='softmax'))
+# Fine-tuning
+# print('Fine-tuning')
+# model = Sequential()
+# for encoder in trained_encoders:
+#     model.add(encoder)
 
-# # model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
+# model.add(Dense(nb_hidden_layers[-1], nb_classes, activation='softmax'))
+# model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
 
-# # model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
+# model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
 # #           show_accuracy=True, validation_data=(X_test, Y_test))
 # # score = model.evaluate(X_test, Y_test, show_accuracy=True, verbose=0)
 # # print('Test score:', score[0])
