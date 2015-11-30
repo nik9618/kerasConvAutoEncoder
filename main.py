@@ -7,12 +7,13 @@ from keras.layers import containers
 from keras.layers.core import Dense, AutoEncoder
 from keras.utils import np_utils
 from keras.preprocessing import sequence
-from keras.regularizers import activity_l2
+from keras.regularizers import activity_l2, activity_l1, l1, l2
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation, Flatten
 from keras.layers.embeddings import Embedding
 from keras.layers.convolutional import Convolution1D, MaxPooling1D
 import keras.utils.layer_utils as layer_utils
+from keras.optimizers import SGD, Adam, RMSprop
 
 pickle_file = open("IIed.p", "rb")
 X_train = pickle.load(pickle_file)
@@ -30,7 +31,7 @@ nb_filter=30
 input_dim = 1;
 filter_length=21
 batch_size = 1
-nb_epoch = 2
+nb_epoch = 1
 
 for n in range(nb_hidden_layer):
     print('Pre-training the layer: {}'.format(n))
@@ -42,7 +43,8 @@ for n in range(nb_hidden_layer):
                             filter_length = filter_length,
                             border_mode = "same",
                             activation = "tanh",
-                            activity_regularizer=activity_l2(0.01),
+                            activity_regularizer=activity_l1(0.001),
+                            W_regularizer=l2(.001),
                             subsample_length = 1))
     decoder = Sequential()
     decoder.add(Convolution1D(input_length=1000,
@@ -50,13 +52,15 @@ for n in range(nb_hidden_layer):
                             nb_filter = 1,
                             filter_length = filter_length,
                             border_mode = "same",
-                            activation = "tanh",
+                            activation = "linear",
+                            W_regularizer=l2(.001),
                             subsample_length = 1))
     ae=Sequential()
     ae.add(AutoEncoder(encoder=encoder, decoder=decoder,output_reconstruction=False))
     layer_utils.print_layer_shapes(ae,[(1,1000,1)]) 
     print "....compile"
-    ae.compile(loss='mean_squared_error', optimizer='rmsprop')
+    # rms = RMSprop(lr=0.0000001)
+    ae.compile(loss='mean_squared_error', optimizer='Adagrad')
     print "....fitting"
     ae.fit(X_train_tmp, X_train_tmp, batch_size=batch_size, nb_epoch=nb_epoch)
     trained_encoders.append(ae.layers[0].encoder)
@@ -67,15 +71,14 @@ for n in range(nb_hidden_layer):
 # model = Sequential()
 # for encoder in trained_encoders:
 #     model.add(encoder)
-
-# model.add(Dense(nb_hidden_layers[-1], nb_classes, activation='softmax'))
+# model.add(Flatten());
+# model.add(Dense(?, 2, activation='softmax'))
 # model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
-
 # model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
-# #           show_accuracy=True, validation_data=(X_test, Y_test))
-# # score = model.evaluate(X_test, Y_test, show_accuracy=True, verbose=0)
-# # print('Test score:', score[0])
-# # print('Test accuracy:', score[1])
+#                             show_accuracy=True, validation_data=(X_test, Y_test))
+# score = model.evaluate(X_test, Y_test, show_accuracy=True, verbose=0)
+# print('Test score:', score[0])
+# print('Test accuracy:', score[1])
 
 
 

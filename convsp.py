@@ -31,12 +31,11 @@ X_train = X_train.astype(floatX)
 print(X_train.shape, 'train samples')
 
 # modelling
-nb_filter=30
+nb_filter=50
 input_dim = 1
-filter_length=21
+filter_length=31
 batch_size = 1
-nb_epoch = 3
-batch_size = 1
+nb_epoch = 2
 
 model = Sequential()
 model.add(
@@ -44,11 +43,11 @@ model.add(
                  input_row=1, input_col=1000,
                  init='glorot_uniform', activation='linear', weights=None,
                  border_mode='valid', subsample=(1, 1),
-                 W_regularizer=l2(.001),activity_regularizer=None,
-                 return_reconstruction=True, n_steps=5, truncate_gradient=-1,
-                 gamma=0.001)
+                 W_regularizer=l2(.0001),activity_regularizer=None,
+                 return_reconstruction=True, n_steps=10, truncate_gradient=-1,
+                 gamma=0.0001)
 )
-rmsp = RMSprop(lr=.01)
+rmsp = RMSprop(lr=.001)
 print "compiling"
 model.compile(loss='mse', optimizer=rmsp)
 
@@ -60,7 +59,7 @@ model.fit(X_train, # input
           X_train, # and output are the same thing, since we are doing generative modeling.
           batch_size=batch_size,
           nb_epoch=nb_epoch)
-
+X_train_tmp = model.predict(X_train)
 
 
 
