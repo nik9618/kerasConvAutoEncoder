@@ -26,7 +26,7 @@ pickle_file = open("IIed.p", "rb")
 X_train = pickle.load(pickle_file)
 pickle_file.close()
 X_train = X_train.reshape(50000,1,1,1000)
-X_train = X_train[0:2000]
+X_train = X_train[0:4000]
 X_train = X_train.astype(floatX)
 print(X_train.shape, 'train samples')
 
@@ -35,7 +35,7 @@ nb_filter=50
 input_dim = 1
 filter_length=31
 batch_size = 1
-nb_epoch = 2
+nb_epoch = 1
 
 model = Sequential()
 model.add(
@@ -43,7 +43,7 @@ model.add(
                  input_row=1, input_col=1000,
                  init='glorot_uniform', activation='linear', weights=None,
                  border_mode='valid', subsample=(1, 1),
-                 W_regularizer=l2(.0001),activity_regularizer=None,
+                 W_regularizer=None,activity_regularizer=None,
                  return_reconstruction=True, n_steps=10, truncate_gradient=-1,
                  gamma=0.0001)
 )
